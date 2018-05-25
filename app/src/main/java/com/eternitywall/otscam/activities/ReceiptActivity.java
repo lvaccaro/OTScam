@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps.activities;
+package com.eternitywall.otscam.activities;
 
 import android.content.ContentResolver;
 import android.content.DialogInterface;
@@ -20,11 +20,11 @@ import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.eternitywall.openphotostamps.GoogleUrlShortener;
-import com.eternitywall.openphotostamps.R;
-import com.eternitywall.openphotostamps.adapters.ItemAdapter;
-import com.eternitywall.openphotostamps.dbhelpers.ReceiptDBHelper;
-import com.eternitywall.openphotostamps.models.Receipt;
+import com.eternitywall.otscam.GoogleUrlShortener;
+import com.eternitywall.otscam.R;
+import com.eternitywall.otscam.adapters.ItemAdapter;
+import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
+import com.eternitywall.otscam.models.Receipt;
 import com.eternitywall.ots.DetachedTimestampFile;
 import com.eternitywall.ots.Hash;
 import com.eternitywall.ots.OpenTimestamps;

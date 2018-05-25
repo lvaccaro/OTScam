@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps;
+package com.eternitywall.otscam;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,8 +6,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.widget.Toast;
 
-import com.eternitywall.openphotostamps.dbhelpers.ReceiptDBHelper;
-import com.eternitywall.openphotostamps.models.Receipt;
+import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
+import com.eternitywall.otscam.models.Receipt;
 import com.eternitywall.ots.DetachedTimestampFile;
 import com.eternitywall.ots.Hash;
 import com.eternitywall.ots.OpenTimestamps;

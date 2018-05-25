@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps.dbhelpers;
+package com.eternitywall.otscam.dbhelpers;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

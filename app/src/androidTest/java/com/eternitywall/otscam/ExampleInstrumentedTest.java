@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps;
+package com.eternitywall.otscam;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.eternitywall.openphotostamps", appContext.getPackageName());
+        assertEquals("com.eternitywall.otscam", appContext.getPackageName());
     }
 }

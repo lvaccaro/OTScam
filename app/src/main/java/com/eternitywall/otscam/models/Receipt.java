@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps.models;
+package com.eternitywall.otscam.models;
 
 public class Receipt {
     public long id;

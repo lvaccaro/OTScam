@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps;
+package com.eternitywall.otscam;
 
 import org.junit.Test;
 

@@ -1,11 +1,11 @@
-package com.eternitywall.openphotostamps.dbhelpers;
+package com.eternitywall.otscam.dbhelpers;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.eternitywall.openphotostamps.models.Receipt;
+import com.eternitywall.otscam.models.Receipt;
 
 import java.util.ArrayList;
 import java.util.List;

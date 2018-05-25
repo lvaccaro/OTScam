@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps.adapters;
+package com.eternitywall.otscam.adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -6,7 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.eternitywall.openphotostamps.R;
+import com.eternitywall.otscam.R;
 import java.util.LinkedHashMap;
 
 

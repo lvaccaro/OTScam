@@ -1,4 +1,4 @@
-package com.eternitywall.openphotostamps.activities;
+package com.eternitywall.otscam.activities;
 
 import android.Manifest;
 import android.content.Context;
@@ -19,7 +19,7 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.eternitywall.openphotostamps.R;
+import com.eternitywall.otscam.R;
 
 import java.io.File;
 
