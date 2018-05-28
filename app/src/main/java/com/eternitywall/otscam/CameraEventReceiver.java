@@ -51,24 +51,22 @@ public class CameraEventReceiver extends BroadcastReceiver {
             e.printStackTrace();
         }
 
+        // Save into db
+        Receipt receipt = new Receipt();
+        receipt.hash = hash.getValue();
+        receipt.path = image_path;
+        receipt.ots = null;
+        receiptDBHelper.create(receipt);
+
+
         // Stamp
         try {
             OpenTimestamps.stamp(detached);
         } catch (IOException e) {
             e.printStackTrace();
-
-            // Save the receipt ots
-            Receipt receipt = new Receipt();
-            receipt.hash = hash.getValue();
-            receipt.path = image_path;
-            receipt.ots = null;
-            receiptDBHelper.create(receipt);
         }
 
-        // Save the receipt ots
-        Receipt receipt = new Receipt();
-        receipt.hash = hash.getValue();
-        receipt.path = image_path;
+        // Update the receipt ots
         receipt.ots = detached.serialize();
         receiptDBHelper.create(receipt);
 
