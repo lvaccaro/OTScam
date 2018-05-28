@@ -60,18 +60,19 @@ public class MainActivity extends AppCompatActivity {
         mProgressBar.setVisibility(View.GONE);
     }
 
+    // stamping all receipts with empty ots field
     private void synchronize(){
         receiptDBHelper =  new ReceiptDBHelper(this);
-        List<Receipt> receipts = receiptDBHelper.getAllNullable();
+        final List<Receipt> receipts = receiptDBHelper.getAllNullable();
         if (receipts.size()>0) {
             Snackbar.make(mCoordinatorLayout,
                     getString(R.string.Find_incomplete_timestamps), Snackbar.LENGTH_LONG)
                     .show();
 
-            new AsyncTask<Receipt, Void, Void>() {
+            new AsyncTask<Void, Void, Void>() {
 
                 @Override
-                protected Void doInBackground( Receipt... receipts ) {
+                protected Void doInBackground( Void... voids ) {
                     for ( Receipt receipt: receipts) {
                         if (receipt.hash != null && receipt.ots == null) {
 

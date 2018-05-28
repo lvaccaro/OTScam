@@ -56,7 +56,7 @@ public class CameraEventReceiver extends BroadcastReceiver {
         receipt.hash = hash.getValue();
         receipt.path = image_path;
         receipt.ots = null;
-        receiptDBHelper.create(receipt);
+        receipt.id = receiptDBHelper.create(receipt);
 
 
         // Stamp

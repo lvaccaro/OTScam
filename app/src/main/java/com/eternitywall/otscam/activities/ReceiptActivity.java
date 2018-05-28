@@ -154,12 +154,23 @@ public class ReceiptActivity extends AppCompatActivity {
                 Receipt receipt;
                 try {
                     receipt = receiptDBHelper.getByHash(hash.getValue());
-                    if (receipt == null || receipt.ots == null) {
+                    if (receipt == null) {
                         throw new Exception();
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                     return false;
+                }
+
+                // if file not timestamped
+                if(receipt.ots == null){
+                    try {
+                        detached = DetachedTimestampFile.from(hash);
+                        OpenTimestamps.stamp(detached);
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        return false;
+                    }
                 }
 
                 // get detached objs
