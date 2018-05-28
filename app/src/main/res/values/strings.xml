@@ -45,4 +45,6 @@
     <string name="reset">Reset</string>
     <string name="opentimestamped">OpenTimestamped</string>
     <string name="maintext">Stamp your camera photos.\nShare photo with BitCamera to verify.</string>
+    <string name="Find_incomplete_timestamps">Find incomplete timestamps</string>
+    <string name="powered_by_eternitywall_opentimestamps"><![CDATA[Powered by EternityWall & OpenTimestamps]]></string>
 </resources>
