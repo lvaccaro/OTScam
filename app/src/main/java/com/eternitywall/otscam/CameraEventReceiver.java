@@ -68,7 +68,7 @@ public class CameraEventReceiver extends BroadcastReceiver {
 
         // Update the receipt ots
         receipt.ots = detached.serialize();
-        receiptDBHelper.create(receipt);
+        receiptDBHelper.update(receipt);
 
         Toast.makeText(context, context.getString(R.string.opentimestamped), Toast.LENGTH_LONG).show();
     }
