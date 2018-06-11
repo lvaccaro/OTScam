@@ -27,6 +27,7 @@ import com.eternitywall.ots.Hash;
 import com.eternitywall.ots.OpenTimestamps;
 import com.eternitywall.ots.op.OpSHA256;
 import com.eternitywall.otscam.R;
+import com.eternitywall.otscam.asynctasks.StampAllAsyncTask;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
 import com.eternitywall.otscam.models.Receipt;
 
@@ -69,29 +70,7 @@ public class MainActivity extends AppCompatActivity {
                     getString(R.string.Find_incomplete_timestamps), Snackbar.LENGTH_LONG)
                     .show();
 
-            new AsyncTask<Void, Void, Void>() {
-
-                @Override
-                protected Void doInBackground( Void... voids ) {
-                    for ( Receipt receipt: receipts) {
-                        if (receipt.hash != null && receipt.ots == null) {
-
-                            Hash hash = new Hash(receipt.hash, new OpSHA256()._TAG());
-                            DetachedTimestampFile detached = DetachedTimestampFile.from(hash);
-                            // Stamp
-                            try {
-                                OpenTimestamps.stamp(detached);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-
-                            // Update the receipt ots
-                            receipt.ots = detached.serialize();
-                            receiptDBHelper.update(receipt);
-                        }
-                    }
-                    return null;
-                }
+            new StampAllAsyncTask(receiptDBHelper) {
 
                 @Override
                 protected void onPreExecute() {

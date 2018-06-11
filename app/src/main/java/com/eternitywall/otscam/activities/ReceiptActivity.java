@@ -23,14 +23,14 @@ import android.widget.Toast;
 import com.eternitywall.otscam.GoogleUrlShortener;
 import com.eternitywall.otscam.R;
 import com.eternitywall.otscam.adapters.ItemAdapter;
+import com.eternitywall.otscam.asynctasks.StampAsyncTask;
+import com.eternitywall.otscam.asynctasks.UpgradeAsyncTask;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
 import com.eternitywall.otscam.models.Receipt;
 import com.eternitywall.ots.DetachedTimestampFile;
 import com.eternitywall.ots.Hash;
-import com.eternitywall.ots.OpenTimestamps;
 import com.eternitywall.ots.StreamSerializationContext;
 import com.eternitywall.ots.Utils;
-import com.eternitywall.ots.op.OpSHA256;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -128,82 +128,23 @@ public class ReceiptActivity extends AppCompatActivity {
 
 
     private void load (final Uri uri) {
+        InputStream fileInputStream;
+        try {
+            fileInputStream = mContentResolver.openInputStream(uri);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
 
-        new AsyncTask<Void, Void, Boolean>() {
-            DetachedTimestampFile detachedOts;
-            DetachedTimestampFile detached;
-            Long date;
-            Hash hash;
 
-            @Override
-            protected Boolean doInBackground(Void... params) {
-
-                // Build hash & digest
-                try {
-                    InputStream fileInputStream = mContentResolver.openInputStream(uri);
-                    hash = Hash.from(fileInputStream, new OpSHA256()._TAG());
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    return false;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-
-                // Search hash into db
-                Receipt receipt;
-                try {
-                    receipt = receiptDBHelper.getByHash(hash.getValue());
-                    if (receipt == null) {
-                        throw new Exception();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-
-                // if file not timestamped
-                if(receipt.ots == null){
-                    try {
-                        detached = DetachedTimestampFile.from(hash);
-                        OpenTimestamps.stamp(detached);
-                    } catch (Exception e){
-                        e.printStackTrace();
-                        return false;
-                    }
-                }
-
-                // get detached objs
-                detached = DetachedTimestampFile.from(hash);
-                detachedOts = DetachedTimestampFile.deserialize(receipt.ots);
-
-                // upgrade OTS
-                try {
-                    Boolean changed = OpenTimestamps.upgrade(detachedOts);
-                    if (changed == true){
-                        receipt.ots = detachedOts.serialize();
-                        receiptDBHelper.update(receipt);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-
-                // verify OTS
-                try {
-                    date = OpenTimestamps.verify(detachedOts, detached);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-                return true;
-            }
-
+        new UpgradeAsyncTask(receiptDBHelper, fileInputStream) {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
                 mProgressBar.setVisibility(View.VISIBLE);
-
             }
 
             @Override

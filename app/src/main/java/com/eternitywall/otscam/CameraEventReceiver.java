@@ -6,24 +6,21 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.widget.Toast;
 
+import com.eternitywall.otscam.asynctasks.StampAsyncTask;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
-import com.eternitywall.otscam.models.Receipt;
 import com.eternitywall.ots.DetachedTimestampFile;
 import com.eternitywall.ots.Hash;
-import com.eternitywall.ots.OpenTimestamps;
-import com.eternitywall.ots.op.OpSHA256;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 
 public class CameraEventReceiver extends BroadcastReceiver {
 
     ReceiptDBHelper receiptDBHelper;
 
     @Override
-    public void onReceive(Context context, Intent intent) {
+    public void onReceive(final Context context, final Intent intent) {
 
         //Toast.makeText(context, "New Photo Clicked", Toast.LENGTH_LONG).show();
 
@@ -40,36 +37,34 @@ public class CameraEventReceiver extends BroadcastReceiver {
         DetachedTimestampFile detached = null;
 
         // Build hash & digest
+        FileInputStream fileInputStream;
         try {
             File file = new File(image_path);
-            FileInputStream fileInputStream = new FileInputStream(file);
-            hash = Hash.from(fileInputStream, new OpSHA256()._TAG());
-            detached = DetachedTimestampFile.from(hash);
+            fileInputStream = new FileInputStream(file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            return;
         } catch (Exception e) {
-            e.printStackTrace();
+            return;
         }
 
-        // Save into db
-        Receipt receipt = new Receipt();
-        receipt.hash = hash.getValue();
-        receipt.path = image_path;
-        receipt.ots = null;
-        receipt.id = receiptDBHelper.create(receipt);
+       new StampAsyncTask(receiptDBHelper, fileInputStream, image_path){
+           @Override
+           protected void onPreExecute() {
+               super.onPreExecute();
+           }
+
+           @Override
+           protected void onPostExecute(Boolean success) {
+               super.onPostExecute(success);
+
+               if(success==true) {
+                   Toast.makeText(context, context.getString(R.string.opentimestamped), Toast.LENGTH_LONG).show();
+               }
+
+           }
+       }.execute();
 
 
-        // Stamp
-        try {
-            OpenTimestamps.stamp(detached);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Update the receipt ots
-        receipt.ots = detached.serialize();
-        receiptDBHelper.update(receipt);
-
-        Toast.makeText(context, context.getString(R.string.opentimestamped), Toast.LENGTH_LONG).show();
     }
 }
