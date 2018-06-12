@@ -52,6 +52,7 @@ public class StampAsyncTask extends AsyncTask<Void, Void, Boolean>{
 
         // Stamp
         try {
+            detached = DetachedTimestampFile.from(hash);
             OpenTimestamps.stamp(detached);
         } catch (IOException e) {
             e.printStackTrace();
