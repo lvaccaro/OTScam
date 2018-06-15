@@ -41,10 +41,14 @@ public class CameraJobService extends JobService {
         if (params.getTriggeredContentAuthorities() != null) {
             if (params.getTriggeredContentUris() != null) {
                 for (Uri uri : params.getTriggeredContentUris()) {
-                    Receipt r = new Receipt();
-                    r.path = Receipt.resolveUri(context, uri);
-                    r.id = receiptDBHelper.create(r);
-                    receipts.add(r);
+                    try{
+                        Receipt r = new Receipt();
+                        r.path = Receipt.resolveUri(context, uri);
+                        r.id = receiptDBHelper.create(r);
+                        receipts.add(r);
+                    }catch (Exception e){
+                        Log.d(TAG, "Invalid url");
+                    }
                 }
             }
         }

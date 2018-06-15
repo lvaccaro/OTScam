@@ -31,13 +31,15 @@ public class CameraBroadcastReceiver extends BroadcastReceiver {
         if (!isCamera(action)) {
             return;
         }
-
-        receiptDBHelper = new ReceiptDBHelper(context);
-        Receipt receipt = new Receipt();
-        receipt.path = Receipt.resolveUri(context, intent.getData());
-        receipt.id = receiptDBHelper.create(receipt);
-
-        doProcess(context, receipt);
+        try{
+            receiptDBHelper = new ReceiptDBHelper(context);
+            Receipt receipt = new Receipt();
+            receipt.path = Receipt.resolveUri(context, intent.getData());
+            receipt.id = receiptDBHelper.create(receipt);
+            doProcess(context, receipt);
+        }catch (Exception e){
+            Log.d(TAG, "Invalid url");
+        }
     }
 
 

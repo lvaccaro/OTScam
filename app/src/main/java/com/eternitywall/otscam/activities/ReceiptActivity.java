@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -129,7 +130,14 @@ public class ReceiptActivity extends AppCompatActivity {
 
     private void load (final Uri uri) {
 
-        new UpgradeAsyncTask(receiptDBHelper, Receipt.resolveUri(ReceiptActivity.this, uri)) {
+        String url = "";
+        try{
+            url = Receipt.resolveUri(ReceiptActivity.this, uri);
+        }catch (Exception e){
+            Log.d("", "Invalid url");
+        }
+
+        new UpgradeAsyncTask(receiptDBHelper, url) {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
