@@ -9,7 +9,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     // Database
     protected static final String DATABASE_NAME = "opentimestamps.db";
-    protected static final int DATABASE_VERSION = 4;
+    protected static final int DATABASE_VERSION = 5;
 
     // Table Names
     protected static final String TABLE_RECEIPTS = "receipts";
@@ -26,7 +26,7 @@ public class DBHelper extends SQLiteOpenHelper {
             " " + KEY_ID + " INTEGER PRIMARY KEY," +
             " " + KEY_PATH + " TEXT NOT NULL," +
             " " + KEY_OTS + " BLOB, " +
-            " " + KEY_HASH + " VARCHAR(64) NOT NULL)";
+            " " + KEY_HASH + " VARCHAR(64))";
 
     // table delete statement
     protected static final String SQL_DELETE_RECEIPTS = "DROP TABLE IF EXISTS " + TABLE_RECEIPTS + " ";

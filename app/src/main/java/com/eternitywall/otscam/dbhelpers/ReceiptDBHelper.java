@@ -22,8 +22,10 @@ public class ReceiptDBHelper extends DBHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_PATH, receipt.path);
-        values.put(KEY_HASH, Receipt.bytesToHex(receipt.hash));
-        if(receipt.ots!=null) {
+        if(receipt.hash != null) {
+            values.put(KEY_HASH, Receipt.bytesToHex(receipt.hash));
+        }
+        if(receipt.ots != null) {
             values.put(KEY_OTS, receipt.ots);
         }
 
@@ -99,7 +101,7 @@ public class ReceiptDBHelper extends DBHelper {
 
     public List<Receipt> getAllNullable() {
         List<Receipt> folders = new ArrayList<Receipt>();
-        String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE " + KEY_OTS + " IS NULL";
+        String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE " + KEY_OTS + " IS NULL OR " + KEY_HASH + " IS NULL";
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery(selectQuery, null);
