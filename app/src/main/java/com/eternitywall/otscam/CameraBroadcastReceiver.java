@@ -13,6 +13,7 @@ import com.eternitywall.otscam.asynctasks.StampAsyncTask;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
 import com.eternitywall.ots.DetachedTimestampFile;
 import com.eternitywall.ots.Hash;
+import com.eternitywall.otscam.models.Receipt;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,7 +22,7 @@ import java.io.FileNotFoundException;
 public class CameraBroadcastReceiver extends BroadcastReceiver {
 
     static ReceiptDBHelper receiptDBHelper;
-    String TAG = "";
+    private final static String TAG = CameraBroadcastReceiver.class.toString();
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
@@ -31,41 +32,17 @@ public class CameraBroadcastReceiver extends BroadcastReceiver {
             return;
         }
 
-        //Toast.makeText(context, "New Photo Clicked", Toast.LENGTH_LONG).show();
-
-        // Read photo
-        //Cursor cursor = context.getContentResolver().query(intent.getData(),
-        //        null, null, null, null);
-        //cursor.moveToFirst();
-        //String image_path = cursor.getString(cursor.getColumnIndex("_data"));
-        //Toast.makeText(context, "New Photo is Saved as : " + image_path, Toast.LENGTH_LONG).show();
-
         receiptDBHelper = new ReceiptDBHelper(context);
-        doProcess(context, intent);
+        Receipt receipt = new Receipt();
+        receipt.path = Receipt.resolveUri(context, intent.getData());
+        receipt.id = receiptDBHelper.create(receipt);
 
+        doProcess(context, receipt);
     }
 
 
-    private static void doProcess(Context context, Intent intent) {
-        // Init
-        Hash hash = null;
-        DetachedTimestampFile detached = null;
-        String image_path = null;
-
-        // Build hash & digest
-        FileInputStream fileInputStream;
-        try {
-            image_path = intent.getAction();
-            File file = new File(image_path);
-            fileInputStream = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return;
-        } catch (Exception e) {
-            return;
-        }
-
-        new StampAsyncTask(receiptDBHelper, fileInputStream, image_path){
+    private static void doProcess(final Context context, final Receipt receipt) {
+        new StampAsyncTask(receiptDBHelper, receipt){
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
@@ -89,7 +66,7 @@ public class CameraBroadcastReceiver extends BroadcastReceiver {
     }
 
     public static void register(Context context) {
-        Log.i(TAG, "register");
+        Log.i(TAG, "register()");
         IntentFilter filter = new IntentFilter();
         filter.addAction(android.hardware.Camera.ACTION_NEW_PICTURE);
         filter.addAction(android.hardware.Camera.ACTION_NEW_VIDEO);
