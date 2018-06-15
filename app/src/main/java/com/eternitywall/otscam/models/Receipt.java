@@ -1,5 +1,10 @@
 package com.eternitywall.otscam.models;
 
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.util.Log;
+
 public class Receipt {
     public long id;
     public String path;
@@ -25,5 +30,12 @@ public class Receipt {
             sb.append(String.format("%02X", b));
         }
         return sb.toString();
+    }
+
+    public static String resolveUri(Context context, Uri uri){
+        Cursor cursor = context.getContentResolver().query(uri,
+                null, null, null, null);
+        cursor.moveToFirst();
+        return cursor.getString(cursor.getColumnIndex("_data"));
     }
 }
