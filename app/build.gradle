@@ -17,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'lib/x86_64/darwin/libscrypt.dylib'
+        exclude 'lib/x86_64/freebsd/libscrypt.so'
+        exclude 'lib/x86_64/linux/libscrypt.so'
+    }
 }
 
 dependencies {
@@ -37,6 +42,5 @@ dependencies {
         exclude group: 'org.slf4j'
         exclude group: 'net.jcip'
         exclude group: 'commons-cli'
-
     }
 }
