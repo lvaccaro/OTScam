@@ -9,6 +9,8 @@ import com.eternitywall.ots.op.OpSHA256;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
 import com.eternitywall.otscam.models.Receipt;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,15 +18,15 @@ import java.util.List;
 
 public class UpgradeAsyncTask extends AsyncTask<Void, Void, Boolean>{
     protected ReceiptDBHelper receiptDBHelper;
-    protected InputStream fileInputStream;
     protected DetachedTimestampFile detachedOts;
     protected DetachedTimestampFile detached;
     protected Long date;
+    protected String path;
     protected Hash hash;
 
-    public UpgradeAsyncTask(final ReceiptDBHelper receiptDBHelper, final InputStream fileInputStream){
+    public UpgradeAsyncTask(final ReceiptDBHelper receiptDBHelper, final String path){
         this.receiptDBHelper = receiptDBHelper;
-        this.fileInputStream = fileInputStream;
+        this.path = path;
     }
 
     @Override
@@ -32,7 +34,8 @@ public class UpgradeAsyncTask extends AsyncTask<Void, Void, Boolean>{
 
         // Build hash & digest
         try {
-            //InputStream fileInputStream = mContentResolver.openInputStream(uri);
+            File file = new File(path);
+            FileInputStream fileInputStream = new FileInputStream(file);
             hash = Hash.from(fileInputStream, new OpSHA256()._TAG());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -83,7 +86,9 @@ public class UpgradeAsyncTask extends AsyncTask<Void, Void, Boolean>{
 
         // verify OTS
         try {
-            date = OpenTimestamps.verify(detachedOts, detached);
+            if(detached.getTimestamp().isTimestampComplete()) {
+                date = OpenTimestamps.verify(detachedOts, detached);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return false;

@@ -5,8 +5,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" />
 
     <application
         android:name=".MainApplication"
@@ -34,17 +32,11 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name=".CameraEventReceiver"
-            android:enabled="true" >
-            <intent-filter>
-                <!-- <action android:name="com.android.camera.NEW_PICTURE" /> pre ICS+ android, intent not supported -->
-                <action android:name="android.hardware.action.NEW_PICTURE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
-            </intent-filter>
+        <service
+            android:name=".CameraJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
-        </receiver>
     </application>
 
 </manifest>

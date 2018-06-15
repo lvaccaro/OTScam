@@ -128,19 +128,8 @@ public class ReceiptActivity extends AppCompatActivity {
 
 
     private void load (final Uri uri) {
-        InputStream fileInputStream;
-        try {
-            fileInputStream = mContentResolver.openInputStream(uri);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
 
-
-        new UpgradeAsyncTask(receiptDBHelper, fileInputStream) {
+        new UpgradeAsyncTask(receiptDBHelper, Receipt.resolveUri(ReceiptActivity.this, uri)) {
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
@@ -195,7 +184,9 @@ public class ReceiptActivity extends AppCompatActivity {
         } else {
             mDataset.put(getString(R.string.ots_proof), Receipt.bytesToHex(ots.serialize()));
 
-            if (date == null || date == 0) {
+            if(!ots.getTimestamp().isTimestampComplete()){
+                mDataset.put(getString(R.string.attestation), getString(R.string.pending_attestation));
+            } else if (date == null || date == 0) {
                 mDataset.put(getString(R.string.attestation), getString(R.string.pending_or_bad_attestation));
             } else {
                 try {

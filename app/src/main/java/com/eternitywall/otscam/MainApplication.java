@@ -2,6 +2,7 @@ package com.eternitywall.otscam;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.support.multidex.MultiDex;
 import android.support.multidex.MultiDexApplication;
 
@@ -20,6 +21,14 @@ public class MainApplication extends MultiDexApplication {
         super.onCreate();
         MultiDex.install(this);
         mInstance = this;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            // use job scheduler
+            CameraJobService.startJob(this);
+        } else {
+            // use broadcast receiver
+            CameraBroadcastReceiver.register(this);
+        }
     }
 
     @Override

@@ -9,6 +9,9 @@ import com.eternitywall.ots.op.OpSHA256;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
 import com.eternitywall.otscam.models.Receipt;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.List;
 
@@ -23,8 +26,17 @@ public class StampAllAsyncTask extends AsyncTask<Void, Void, Void>{
     protected Void doInBackground(Void... voids) {
         final List<Receipt> receipts = receiptDBHelper.getAllNullable();
         for (Receipt receipt : receipts) {
-            if (receipt.hash != null && receipt.ots == null) {
-
+            if (receipt.hash == null){
+                try {
+                    File file = new File(receipt.path);
+                    FileInputStream fileInputStream = new FileInputStream(file);
+                    receipt.hash = Hash.from(fileInputStream, new OpSHA256()._TAG()).getValue();
+                    receiptDBHelper.update(receipt);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            if(receipt.ots == null) {
                 Hash hash = new Hash(receipt.hash, new OpSHA256()._TAG());
                 DetachedTimestampFile detached = DetachedTimestampFile.from(hash);
                 // Stamp

@@ -47,4 +47,5 @@
     <string name="maintext">Stamp your camera photos.\nShare photo with OTScam to verify.</string>
     <string name="Find_incomplete_timestamps">Find incomplete timestamps</string>
     <string name="powered_by_eternitywall_opentimestamps"><![CDATA[Powered by EternityWall & OpenTimestamps]]></string>
+    <string name="pending_attestation">Pending Attestation</string>
 </resources>

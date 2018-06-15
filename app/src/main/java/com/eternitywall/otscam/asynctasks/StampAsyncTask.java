@@ -1,5 +1,7 @@
 package com.eternitywall.otscam.asynctasks;
 
+import android.content.ContentResolver;
+import android.net.Uri;
 import android.os.AsyncTask;
 
 import com.eternitywall.ots.DetachedTimestampFile;
@@ -9,6 +11,8 @@ import com.eternitywall.ots.op.OpSHA256;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
 import com.eternitywall.otscam.models.Receipt;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,24 +20,22 @@ import java.util.List;
 
 public class StampAsyncTask extends AsyncTask<Void, Void, Boolean>{
     protected ReceiptDBHelper receiptDBHelper;
-    protected InputStream fileInputStream;
     protected DetachedTimestampFile detached;
     protected Long date;
     protected Hash hash;
-    protected String image_path;
+    protected Receipt receipt;
 
-    public StampAsyncTask(final ReceiptDBHelper receiptDBHelper, final InputStream fileInputStream, final String image_path){
+    public StampAsyncTask(final ReceiptDBHelper receiptDBHelper, final Receipt receipt){
         this.receiptDBHelper = receiptDBHelper;
-        this.fileInputStream = fileInputStream;
-        this.image_path = image_path;
+        this.receipt = receipt;
     }
 
     @Override
     protected Boolean doInBackground(Void... voids) {
-
         // Build hash & digest
         try {
-            //InputStream fileInputStream = mContentResolver.openInputStream(uri);
+            File file = new File(receipt.path);
+            FileInputStream fileInputStream = new FileInputStream(file);
             hash = Hash.from(fileInputStream, new OpSHA256()._TAG());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -43,12 +45,13 @@ public class StampAsyncTask extends AsyncTask<Void, Void, Boolean>{
             return false;
         }
         // Save into db
-        Receipt receipt = new Receipt();
         receipt.hash = hash.getValue();
-        receipt.path = image_path;
         receipt.ots = null;
-        receipt.id = receiptDBHelper.create(receipt);
-
+        if(receipt.id == 0) {
+            receipt.id = receiptDBHelper.create(receipt);
+        } else {
+            receipt.id = receiptDBHelper.update(receipt);
+        }
 
         // Stamp
         try {
