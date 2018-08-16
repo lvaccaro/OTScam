@@ -22,30 +22,32 @@ public class StampAllAsyncTask extends AsyncTask<Void, Void, Void>{
         this.receiptDBHelper = receiptDBHelper;
     }
 
+    public static StampAllAsyncTask createStampAllAsyncTask(final ReceiptDBHelper receiptDBHelper) {
+        return new StampAllAsyncTask(receiptDBHelper);
+    }
+
     @Override
-    protected Void doInBackground(Void... voids) {
+    protected Void doInBackground(final Void... voids) {
         final List<Receipt> receipts = receiptDBHelper.getAllNullable();
-        for (Receipt receipt : receipts) {
-            if (receipt.hash == null){
+        for (final Receipt receipt : receipts) {
+            if (receipt.hash == null)
                 try {
-                    File file = new File(receipt.path);
-                    FileInputStream fileInputStream = new FileInputStream(file);
+                    final File file = new File(receipt.path);
+                    final FileInputStream fileInputStream = new FileInputStream(file);
                     receipt.hash = Hash.from(fileInputStream, new OpSHA256()._TAG()).getValue();
                     receiptDBHelper.update(receipt);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
             if(receipt.ots == null) {
-                Hash hash = new Hash(receipt.hash, new OpSHA256()._TAG());
-                DetachedTimestampFile detached = DetachedTimestampFile.from(hash);
+                final Hash hash = new Hash(receipt.hash, new OpSHA256()._TAG());
+                final DetachedTimestampFile detached = DetachedTimestampFile.from(hash);
                 // Stamp
                 try {
                     OpenTimestamps.stamp(detached);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-
                 // Update the receipt ots
                 receipt.ots = detached.serialize();
                 receiptDBHelper.update(receipt);

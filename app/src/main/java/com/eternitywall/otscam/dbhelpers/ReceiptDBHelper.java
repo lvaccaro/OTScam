@@ -13,125 +13,103 @@ import java.util.List;
 public class ReceiptDBHelper extends DBHelper {
 
 
-    public ReceiptDBHelper(Context context) {
+    private ReceiptDBHelper(final Context context) {
         super(context);
     }
 
-    public long create(Receipt receipt) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
-        values.put(KEY_PATH, receipt.path);
-        if(receipt.hash != null) {
-            values.put(KEY_HASH, Receipt.bytesToHex(receipt.hash));
-        }
-        if(receipt.ots != null) {
-            values.put(KEY_OTS, receipt.ots);
-        }
-
-        // insert row
-        long id = db.insert(TABLE_RECEIPTS, null, values);
-        return id;
+    public static ReceiptDBHelper createReceiptDBHelper(final Context context) {
+        return new ReceiptDBHelper(context);
     }
 
-    public Receipt get(long id) {
-        SQLiteDatabase db = this.getReadableDatabase();
+    public long create(final Receipt receipt) {
+        final SQLiteDatabase db = getWritableDatabase();
+        final ContentValues values = new ContentValues();
+        values.put(KEY_PATH, receipt.path);
+        if (receipt.hash != null)
+            values.put(KEY_HASH, Receipt.bytesToHex(receipt.hash));
+        if (receipt.ots != null)
+            values.put(KEY_OTS, receipt.ots);
+        // insert row
+        return db.insert(TABLE_RECEIPTS, null, values);
+    }
 
-        String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE "
+    public Receipt get(final long id) {
+        final SQLiteDatabase db = getReadableDatabase();
+        final String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE "
                 + KEY_ID + " = " + id;
-
-        Cursor c = db.rawQuery(selectQuery, null);
-
+        final Cursor c = db.rawQuery(selectQuery, null);
         if (c != null)
             c.moveToFirst();
-
-        Receipt receipt = new Receipt();
+        final Receipt receipt = new Receipt();
         receipt.id = c.getInt(c.getColumnIndex(KEY_ID));
         receipt.path = c.getString(c.getColumnIndex(KEY_PATH));
         receipt.ots = c.getBlob(c.getColumnIndex(KEY_OTS));
         receipt.hash = Receipt.hexToBytes(c.getString(c.getColumnIndex(KEY_HASH)));
-
         c.close();
         return receipt;
     }
 
-    public Receipt getByHash(byte[] hash) {
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE "
+    public Receipt getByHash(final byte[] hash) {
+        final SQLiteDatabase db = this.getReadableDatabase();
+        final String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE "
                 + KEY_HASH + " = '" + Receipt.bytesToHex(hash) + "'";
-
-        Cursor c = db.rawQuery(selectQuery, null);
-
+        final Cursor c = db.rawQuery(selectQuery, null);
         if (c != null)
             c.moveToFirst();
-
-        Receipt receipt = new Receipt();
+        final Receipt receipt = new Receipt();
         receipt.id = c.getInt(c.getColumnIndex(KEY_ID));
         receipt.path = c.getString(c.getColumnIndex(KEY_PATH));
         receipt.ots = c.getBlob(c.getColumnIndex(KEY_OTS));
         receipt.hash = Receipt.hexToBytes(c.getString(c.getColumnIndex(KEY_HASH)));
-
         c.close();
         return receipt;
     }
 
     public List<Receipt> getAll() {
-        List<Receipt> folders = new ArrayList<Receipt>();
-        String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS;
-
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery(selectQuery, null);
-
+        final List<Receipt> folders = new ArrayList<Receipt>();
+        final String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS;
+        final SQLiteDatabase db = this.getReadableDatabase();
+        final Cursor c = db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
-        if (c.moveToFirst()) {
+        if (c.moveToFirst())
             do {
-                Receipt receipt = new Receipt();
+                final Receipt receipt = new Receipt();
                 receipt.id = c.getInt(c.getColumnIndex(KEY_ID));
                 receipt.path = c.getString(c.getColumnIndex(KEY_PATH));
                 receipt.ots = c.getBlob(c.getColumnIndex(KEY_OTS));
                 receipt.hash = Receipt.hexToBytes(c.getString(c.getColumnIndex(KEY_HASH)));
                 folders.add(receipt);
             } while (c.moveToNext());
-        }
-
         c.close();
         return folders;
     }
 
     public List<Receipt> getAllNullable() {
-        List<Receipt> folders = new ArrayList<Receipt>();
-        String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE " + KEY_OTS + " IS NULL OR " + KEY_HASH + " IS NULL";
-
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery(selectQuery, null);
-
+        final List<Receipt> folders = new ArrayList<Receipt>();
+        final String selectQuery = "SELECT  * FROM " + TABLE_RECEIPTS + " WHERE " + KEY_OTS + " IS NULL OR " + KEY_HASH + " IS NULL";
+        final SQLiteDatabase db = this.getReadableDatabase();
+        final Cursor c = db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
-        if (c.moveToFirst()) {
+        if (c.moveToFirst())
             do {
-                Receipt receipt = new Receipt();
+                final Receipt receipt = new Receipt();
                 receipt.id = c.getInt(c.getColumnIndex(KEY_ID));
                 receipt.path = c.getString(c.getColumnIndex(KEY_PATH));
                 receipt.ots = c.getBlob(c.getColumnIndex(KEY_OTS));
                 receipt.hash = Receipt.hexToBytes(c.getString(c.getColumnIndex(KEY_HASH)));
                 folders.add(receipt);
             } while (c.moveToNext());
-        }
-
         c.close();
         return folders;
     }
 
-    public int update(Receipt receipt) {
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        ContentValues values = new ContentValues();
+    public int update(final Receipt receipt) {
+        final SQLiteDatabase db = getWritableDatabase();
+        final ContentValues values = new ContentValues();
         values.put(KEY_PATH, receipt.path);
         values.put(KEY_HASH, Receipt.bytesToHex(receipt.hash));
-        if(receipt.ots!=null) {
+        if (receipt.ots != null)
             values.put(KEY_OTS, receipt.ots);
-        }
-
         // updating row
         return db.update(TABLE_RECEIPTS, values, KEY_ID + " = ?",
                 new String[] { String.valueOf(receipt.id) });

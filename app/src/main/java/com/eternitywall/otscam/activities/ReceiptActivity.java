@@ -9,7 +9,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
@@ -24,7 +24,6 @@ import android.widget.Toast;
 import com.eternitywall.otscam.GoogleUrlShortener;
 import com.eternitywall.otscam.R;
 import com.eternitywall.otscam.adapters.ItemAdapter;
-import com.eternitywall.otscam.asynctasks.StampAsyncTask;
 import com.eternitywall.otscam.asynctasks.UpgradeAsyncTask;
 import com.eternitywall.otscam.dbhelpers.ReceiptDBHelper;
 import com.eternitywall.otscam.models.Receipt;
@@ -34,11 +33,8 @@ import com.eternitywall.ots.StreamSerializationContext;
 import com.eternitywall.ots.Utils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -46,37 +42,31 @@ import java.util.LinkedHashMap;
 
 public class ReceiptActivity extends AppCompatActivity {
 
-
-    private RecyclerView mRecyclerView;
     private ItemAdapter mAdapter;
     private LinkedHashMap<String,String> mDataset;
-    private RecyclerView.LayoutManager mLayoutManager;
-    ProgressBar mProgressBar;
-
-    ReceiptDBHelper receiptDBHelper;
-    ContentResolver mContentResolver;
-    DetachedTimestampFile ots;
-
+    private ProgressBar mProgressBar;
+    private ReceiptDBHelper receiptDBHelper;
+    private DetachedTimestampFile ots;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_receipt);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.my_recycler_view);
-        mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+        final RecyclerView mRecyclerView = findViewById(R.id.my_recycler_view);
+        mProgressBar = findViewById(R.id.progressBar);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
         // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(this);
+        final RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        DividerItemDecoration horizontalDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
+        final DividerItemDecoration horizontalDecoration = new DividerItemDecoration(mRecyclerView.getContext(),
                 DividerItemDecoration.VERTICAL);
-        Drawable horizontalDivider = ContextCompat.getDrawable(this, R.drawable.divider_grey);
+        final Drawable horizontalDivider = ContextCompat.getDrawable(this, R.drawable.divider_grey);
         horizontalDecoration.setDrawable(horizontalDivider);
         mRecyclerView.addItemDecoration(horizontalDecoration);
 
@@ -88,55 +78,39 @@ public class ReceiptActivity extends AppCompatActivity {
         // Set button
         findViewById(R.id.btnInfo).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 onInfoClick();
             }
         });
         findViewById(R.id.btnDownload).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(final View v) {
                 onDownloadClick();
             }
         });
         // Check DB
-        receiptDBHelper = new ReceiptDBHelper(this);
+        receiptDBHelper = ReceiptDBHelper.createReceiptDBHelper(this);
 
         // Init content
-        mContentResolver = getContentResolver();
+        //final ContentResolver mContentResolver = getContentResolver();
 
         // Get intent file
-        Intent intent = getIntent();
+        final Intent intent = getIntent();
         if (Intent.ACTION_SEND.equals(intent.getAction())) {
-            Bundle extras = intent.getExtras();
-            if (extras.containsKey(Intent.EXTRA_STREAM)) {
-                Uri uri = extras.getParcelable(Intent.EXTRA_STREAM);
-                String scheme = uri.getScheme();
-                if (scheme.equals("content")) {
-                    /*String mimeType = intent.getType();
-                    ContentResolver contentResolver = getContentResolver();
-                    Cursor cursor = contentResolver.query(uri, null, null, null, null);
-                    cursor.moveToFirst();
-                    String filePath = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
-                    refresh(filePath);*/
-                    load(uri);
-                } else {
-                    load(uri);
-                }
-            }
+            final Bundle extras = intent.getExtras();
+            if (extras.containsKey(Intent.EXTRA_STREAM))
+                load(extras.<Uri>getParcelable(Intent.EXTRA_STREAM));
         }
     }
 
-
-
     private void load (final Uri uri) {
-
-        String url = "";
+        final String url;
         try{
-            url = Receipt.resolveUri(ReceiptActivity.this, uri);
-        }catch (Exception e){
+            url = Receipt.resolveUri(this, uri);
+        }catch (final Exception e){
             Log.d("", "Invalid url");
+            return;
         }
-
         new UpgradeAsyncTask(receiptDBHelper, url) {
             @Override
             protected void onPreExecute() {
@@ -145,73 +119,67 @@ public class ReceiptActivity extends AppCompatActivity {
             }
 
             @Override
-            protected void onPostExecute(Boolean success) {
+            protected void onPostExecute(final Boolean success) {
                 super.onPostExecute(success);
                 mProgressBar.setVisibility(View.GONE);
-
-                if(success==true) {
+                if (success) {
                     ots = detachedOts;
                     refresh(uri, hash, detachedOts, date);
-                    return;
-                }
-
-                Toast.makeText(ReceiptActivity.this, "File not stamped",Toast.LENGTH_LONG).show();
+                } else
+                    Toast.makeText(ReceiptActivity.this, "File not stamped", Toast.LENGTH_LONG).show();
             }
         }.execute();
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(final MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        final int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_settings)
             return true;
-        }
 
         return super.onOptionsItemSelected(item);
     }
 
 
-    public void refresh(Uri uri, Hash hash, DetachedTimestampFile ots, Long date){
+    public void refresh(final Uri uri, final Hash hash, final DetachedTimestampFile ots, final Long date){
         mDataset.put(getString(R.string.name),uri.getLastPathSegment());
         mDataset.put(getString(R.string.uri),uri.toString());
         mDataset.put(getString(R.string.hash), hash.toString());
-        if(ots == null){
-            mDataset.put(getString(R.string.ots_proof), getString(R.string.file_not_timestamped));
-        } else {
+        if (ots != null) {
             mDataset.put(getString(R.string.ots_proof), Receipt.bytesToHex(ots.serialize()));
 
-            if(!ots.getTimestamp().isTimestampComplete()){
+            if (!ots.getTimestamp().isTimestampComplete())
                 mDataset.put(getString(R.string.attestation), getString(R.string.pending_attestation));
-            } else if (date == null || date == 0) {
+            else if (date == null || date == 0)
                 mDataset.put(getString(R.string.attestation), getString(R.string.pending_or_bad_attestation));
-            } else {
+            else
                 try {
                     //Thu May 28 2015 17:41:18 GMT+0200 (CEST)
-                    DateFormat sdf = new SimpleDateFormat(getString(R.string.date_format));
-                    Date netDate = new Date(date * 1000);
+                    final DateFormat sdf = new SimpleDateFormat(getString(R.string.date_format));
+                    final Date netDate = new Date(date * 1000);
                     mDataset.put(getString(R.string.attestation), getString(R.string.bitcoin_attests) + " " + sdf.format(netDate));
-                } catch (Exception ex) {
+                } catch (final Exception ex) {
                     mDataset.put(getString(R.string.attestation), getString(R.string.invalid_date));
                 }
-            }
-        }
+        } else
+            mDataset.put(getString(R.string.ots_proof), getString(R.string.file_not_timestamped));
         mAdapter.notifyDataSetChanged();
     }
 
     public void onSharingClick() {
-        Intent shareIntent = new Intent();
+        final Intent shareIntent = new Intent();
         shareIntent.setAction(Intent.ACTION_SEND);
         shareIntent.putExtra(Intent.EXTRA_STREAM, ots.serialize());
         shareIntent.setType("text/plain");
@@ -223,39 +191,36 @@ public class ReceiptActivity extends AppCompatActivity {
             String shortUrl = "";
 
             @Override
-            protected Boolean doInBackground(Void... params) {
-                String otsString = Receipt.bytesToHex(ots.serialize());
-                String url = "https://opentimestamps.org/info/?";
-                url += otsString;
+            protected Boolean doInBackground(final Void... params) {
+                final String otsString = Receipt.bytesToHex(ots.serialize());
+                final String url = "https://opentimestamps.org/info/?" + otsString;
                 shortUrl = GoogleUrlShortener.shorten(url);
                 return true;
             }
 
             @Override
-            protected void onPostExecute(Boolean success) {
+            protected void onPostExecute(final Boolean success) {
                 super.onPostExecute(success);
-
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(shortUrl));
-                startActivity(i);
+                final Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(shortUrl));
+                startActivity(intent);
             }
         }.execute();
     }
 
-
     public void onDownloadClick() {
-        new AlertDialog.Builder(ReceiptActivity.this)
+        new Builder(this)
                 .setTitle(getString(R.string.warning))
                 .setMessage(getString(R.string.file_download_alertdialog))
                 .setPositiveButton(R.string.saving, new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(final DialogInterface dialogInterface, final int i) {
                         onSavingClick();
                     }
                 })
                 .setNegativeButton(R.string.sharing, new DialogInterface.OnClickListener() {
                     @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
+                    public void onClick(final DialogInterface dialogInterface, final int i) {
                         onSharingClick();
                     }
                 })
@@ -263,30 +228,26 @@ public class ReceiptActivity extends AppCompatActivity {
     }
 
     public void onSavingClick() {
-
-        String filename = Utils.bytesToHex(ots.fileDigest())+".ots";
-        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-        String filepath = dir.getAbsolutePath()+"/"+filename;
+        final String filename = Utils.bytesToHex(ots.fileDigest()) + ".ots";
+        final File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+        final String filepath = dir.getAbsolutePath() + "/" + filename;
         try {
             write(ots,filepath);
-            Toast.makeText(this,getString(R.string.file_proof_saving)+" "+filepath,Toast.LENGTH_LONG).show();
-        } catch (IOException e) {
+            Toast.makeText(this, getString(R.string.file_proof_saving) + " " + filepath, Toast.LENGTH_LONG).show();
+        } catch (final IOException e) {
             e.printStackTrace();
-            Toast.makeText(this, getString(R.string.file_proof_saving_error),Toast.LENGTH_LONG).show();
-        } catch (NoSuchAlgorithmException e) {
+            Toast.makeText(this, getString(R.string.file_proof_saving_error), Toast.LENGTH_LONG).show();
+        } catch (final Exception e) {
             e.printStackTrace();
-            Toast.makeText(this,getString(R.string.file_proof_saving_error),Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.file_proof_saving_error), Toast.LENGTH_LONG).show();
         }
     }
 
-    public static void write(DetachedTimestampFile detached, String filepath) throws IOException, NoSuchAlgorithmException {
-
-        File file = new File(filepath);
-        FileOutputStream fos = new FileOutputStream(file);
-
-        StreamSerializationContext ssc = new StreamSerializationContext();
+    public static void write(final DetachedTimestampFile detached, final String filepath) throws IOException {
+        final File file = new File(filepath);
+        final FileOutputStream fos = new FileOutputStream(file);
+        final StreamSerializationContext ssc = new StreamSerializationContext();
         detached.serialize(ssc);
-
         fos.write(ssc.getOutput());
         fos.close();
     }

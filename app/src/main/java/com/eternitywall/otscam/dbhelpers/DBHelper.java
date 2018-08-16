@@ -31,27 +31,31 @@ public class DBHelper extends SQLiteOpenHelper {
     // table delete statement
     protected static final String SQL_DELETE_RECEIPTS = "DROP TABLE IF EXISTS " + TABLE_RECEIPTS + " ";
 
-    public DBHelper(Context context) {
+    DBHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    public void onCreate(SQLiteDatabase db) {
+    public static DBHelper createDBHelper(final Context context) {
+        return new DBHelper(context);
+    }
+
+    public void onCreate(final SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_RECEIPTS);
     }
 
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
         // This database is only a cache for online data, so its upgrade policy is
         // to simply to discard the data and start over
         db.execSQL(SQL_DELETE_RECEIPTS);
         onCreate(db);
     }
 
-    public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+    public void onDowngrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
         onUpgrade(db, oldVersion, newVersion);
     }
 
     public void clearAll() {
-        SQLiteDatabase db = this.getWritableDatabase();
+        final SQLiteDatabase db = getWritableDatabase();
         db.execSQL(SQL_DELETE_RECEIPTS);
         db.execSQL(SQL_CREATE_RECEIPTS);
     }

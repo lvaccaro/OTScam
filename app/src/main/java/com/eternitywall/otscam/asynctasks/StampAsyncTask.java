@@ -30,34 +30,37 @@ public class StampAsyncTask extends AsyncTask<Void, Void, Boolean>{
         this.receipt = receipt;
     }
 
+    public static StampAsyncTask createStampAsyncTask(final ReceiptDBHelper receiptDBHelper, final Receipt receipt) {
+        return new StampAsyncTask(receiptDBHelper, receipt);
+    }
+
     @Override
-    protected Boolean doInBackground(Void... voids) {
+    protected Boolean doInBackground(final Void... voids) {
         // Build hash & digest
         try {
-            File file = new File(receipt.path);
-            FileInputStream fileInputStream = new FileInputStream(file);
+            final File file = new File(receipt.path);
+            final FileInputStream fileInputStream = new FileInputStream(file);
             hash = Hash.from(fileInputStream, new OpSHA256()._TAG());
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             e.printStackTrace();
             return false;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }
         // Save into db
         receipt.hash = hash.getValue();
         receipt.ots = null;
-        if(receipt.id == 0) {
+        if (receipt.id == 0)
             receipt.id = receiptDBHelper.create(receipt);
-        } else {
+        else
             receipt.id = receiptDBHelper.update(receipt);
-        }
 
         // Stamp
         try {
             detached = DetachedTimestampFile.from(hash);
             OpenTimestamps.stamp(detached);
-        } catch (IOException e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }

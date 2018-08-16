@@ -7,9 +7,7 @@ import android.app.job.JobScheduler;
 import android.app.job.JobService;
 import android.content.ComponentName;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -22,39 +20,37 @@ import com.eternitywall.otscam.models.Receipt;
 import java.util.ArrayList;
 import java.util.List;
 
-@TargetApi(Build.VERSION_CODES.N)
+@TargetApi(value = Build.VERSION_CODES.N)
 public class CameraJobService extends JobService {
-    private final static String TAG = CameraJobService.class.toString();
+    private static final String TAG = CameraJobService.class.toString();
     ReceiptDBHelper receiptDBHelper;
 
     // The document says that
     // Job ID must be unique across all clients of the same uid (not just the same package).
-    private final static int CONTENT_URI_JOB_ID = 1000;
+    private static final int CONTENT_URI_JOB_ID = 1000;
 
     @Override
     public boolean onStartJob(final JobParameters params) {
         Log.i(TAG, "onStartJob: " + this);
+        final Context context = getApplicationContext();
+        receiptDBHelper = ReceiptDBHelper.createReceiptDBHelper(context);
+        final List<Receipt> receipts = new ArrayList<>();
+        if (params.getTriggeredContentAuthorities() == null)
+            return false;
+        if (params.getTriggeredContentUris() == null)
+            return false;
 
-        Context context = getApplicationContext();
-        receiptDBHelper = new ReceiptDBHelper(context);
-        List<Receipt> receipts = new ArrayList<>();
-        if (params.getTriggeredContentAuthorities() != null) {
-            if (params.getTriggeredContentUris() != null) {
-                for (Uri uri : params.getTriggeredContentUris()) {
-                    try{
-                        Receipt r = new Receipt();
-                        r.path = Receipt.resolveUri(context, uri);
-                        r.id = receiptDBHelper.create(r);
-                        receipts.add(r);
-                    }catch (Exception e){
-                        Log.d(TAG, "Invalid url");
-                    }
-                }
+        for (final Uri uri : params.getTriggeredContentUris())
+            try {
+                final Receipt r = new Receipt();
+                r.path = Receipt.resolveUri(context, uri);
+                r.id = receiptDBHelper.create(r);
+                receipts.add(r);
+            } catch (final Exception e) {
+                Log.d(TAG, "Invalid url");
             }
-        }
-        if(receipts.size()==0){
+        if (receipts.isEmpty())
             return true;
-        }
 
         doProcess(params, context, receipts.get(0));
 
@@ -63,9 +59,8 @@ public class CameraJobService extends JobService {
     }
 
     @Override
-    public boolean onStopJob(JobParameters params) {
+    public boolean onStopJob(final JobParameters params) {
         Log.i(TAG, "onStopJob: " + this);
-
         // drop the job
         return false;
     }
@@ -79,15 +74,12 @@ public class CameraJobService extends JobService {
             }
 
             @Override
-            protected void onPostExecute(Boolean success) {
+            protected void onPostExecute(final Boolean success) {
                 super.onPostExecute(success);
-
-                if(success==true) {
+                if(success)
                     Toast.makeText(context, context.getString(R.string.opentimestamped), Toast.LENGTH_LONG).show();
-                }
                 // mark the job as 'finished'
                 jobFinished(params, false);
-
                 // create a new job
                 startJob(getApplicationContext());
 
@@ -95,20 +87,17 @@ public class CameraJobService extends JobService {
         }.execute();
     }
 
-    @TargetApi(Build.VERSION_CODES.N)
-    public static void startJob(Context context) {
+    @TargetApi(value = Build.VERSION_CODES.N)
+    public static void startJob(final Context context) {
         Log.i(TAG, "startJob");
-        JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-
-        JobInfo.Builder builder = new JobInfo.Builder(
+        final JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        final JobInfo.Builder builder = new JobInfo.Builder(
                 CONTENT_URI_JOB_ID,
                 new ComponentName(context, CameraJobService.class));
-
         builder.addTriggerContentUri(
                 new JobInfo.TriggerContentUri(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         JobInfo.TriggerContentUri.FLAG_NOTIFY_FOR_DESCENDANTS));
-
         scheduler.schedule(builder.build());
     }
 }

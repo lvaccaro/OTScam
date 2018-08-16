@@ -10,9 +10,8 @@ import android.support.multidex.MultiDexApplication;
 
 public class MainApplication extends MultiDexApplication {
 
-
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(final Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
 
@@ -20,7 +19,6 @@ public class MainApplication extends MultiDexApplication {
     public void onCreate() {
         super.onCreate();
         MultiDex.install(this);
-        mInstance = this;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             // use job scheduler
@@ -32,11 +30,10 @@ public class MainApplication extends MultiDexApplication {
     }
 
     @Override
-    protected void attachBaseContext(Context base) {
+    protected void attachBaseContext(final Context base) {
         super.attachBaseContext(base);
         MultiDex.install(this);
     }
-
 
     @Override
     public void onLowMemory() {
@@ -46,12 +43,5 @@ public class MainApplication extends MultiDexApplication {
     @Override
     public void onTerminate() {
         super.onTerminate();
-    }
-
-
-    private static MainApplication mInstance;
-
-    public static synchronized MainApplication getInstance() {
-        return mInstance;
     }
 }

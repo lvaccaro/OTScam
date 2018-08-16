@@ -24,49 +24,50 @@ public class UpgradeAsyncTask extends AsyncTask<Void, Void, Boolean>{
     protected String path;
     protected Hash hash;
 
-    public UpgradeAsyncTask(final ReceiptDBHelper receiptDBHelper, final String path){
+    public UpgradeAsyncTask(final ReceiptDBHelper receiptDBHelper, final String path) {
         this.receiptDBHelper = receiptDBHelper;
         this.path = path;
     }
 
-    @Override
-    protected Boolean doInBackground(Void... voids) {
+    public static UpgradeAsyncTask createUpgradeAsyncTask(final ReceiptDBHelper receiptDBHelper, final String path) {
+        return new UpgradeAsyncTask(receiptDBHelper, path);
+    }
 
+    @Override
+    protected Boolean doInBackground(final Void... voids) {
         // Build hash & digest
         try {
-            File file = new File(path);
-            FileInputStream fileInputStream = new FileInputStream(file);
+            final File file = new File(path);
+            final FileInputStream fileInputStream = new FileInputStream(file);
             hash = Hash.from(fileInputStream, new OpSHA256()._TAG());
-        } catch (FileNotFoundException e) {
+        } catch (final FileNotFoundException e) {
             e.printStackTrace();
             return false;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }
 
         // Search hash into db
-        Receipt receipt;
+        final Receipt receipt;
         try {
             receipt = receiptDBHelper.getByHash(hash.getValue());
-            if (receipt == null) {
+            if (receipt == null)
                 throw new Exception();
-            }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }
 
         // if file not timestamped
-        if(receipt.ots == null){
+        if (receipt.ots == null)
             try {
                 detached = DetachedTimestampFile.from(hash);
                 OpenTimestamps.stamp(detached);
-            } catch (Exception e){
+            } catch (final Exception e){
                 e.printStackTrace();
                 return false;
             }
-        }
 
         // get detached objs
         detached = DetachedTimestampFile.from(hash);
@@ -74,22 +75,21 @@ public class UpgradeAsyncTask extends AsyncTask<Void, Void, Boolean>{
 
         // upgrade OTS
         try {
-            Boolean changed = OpenTimestamps.upgrade(detachedOts);
-            if (changed == true){
+            final Boolean changed = OpenTimestamps.upgrade(detachedOts);
+            if (changed == true) {
                 receipt.ots = detachedOts.serialize();
                 receiptDBHelper.update(receipt);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }
 
         // verify OTS
         try {
-            if(detached.getTimestamp().isTimestampComplete()) {
+            if (detached.getTimestamp().isTimestampComplete())
                 date = OpenTimestamps.verify(detachedOts, detached);
-            }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }

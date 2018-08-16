@@ -8,11 +8,12 @@ import android.widget.TextView;
 
 import com.eternitywall.otscam.R;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
 
-    private LinkedHashMap<String,String> mDataset = new LinkedHashMap<>();
+    private Map<String,String> mDataset = new LinkedHashMap<>();
     OnItemClickListener mItemClickListener;
 
 // Provide a reference to the views for each data item
@@ -21,8 +22,10 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         // each data item is just a string in this case
-        public TextView mTvKey,mTvValue;
-        public ViewHolder(View v) {
+        public TextView mTvKey;
+        public TextView mTvValue;
+
+        public ViewHolder(final View v) {
             super(v);
             mTvKey = v.findViewById(R.id.tvKey);
             mTvValue = v.findViewById(R.id.tvValue);
@@ -30,58 +33,52 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ViewHolder> {
             mTvValue.setOnClickListener(this);
         }
         @Override
-        public void onClick(View v) {
-            System.out.println("onClick");
-            String key = mTvKey.getText().toString();
-            if(mItemClickListener != null) {
-                mItemClickListener.onItemClick(v, getAdapterPosition(), key); //OnItemClickListener mItemClickListener;
-            }
+        public void onClick(final View v) {
+            final String key = mTvKey.getText().toString();
+            if (mItemClickListener != null)
+                mItemClickListener.onItemClick(v, getAdapterPosition(), key);
         }
     }
+
     // Provide a suitable constructor (depends on the kind of dataset)
-    public ItemAdapter(LinkedHashMap<String,String> myDataset) {
+    public ItemAdapter(final Map<String,String> myDataset) {
         mDataset = myDataset;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ItemAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                    int viewType) {
+    public ItemAdapter.ViewHolder onCreateViewHolder(final ViewGroup parent,
+                                                     final int viewType) {
         // create a new view
-        View v = LayoutInflater.from(parent.getContext())
+        final View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item, parent, false);
         // set the view's size, margins, paddings and layout parameters
-
-        ViewHolder vh = new ViewHolder(v);
+        final ViewHolder vh = new ViewHolder(v);
         return vh;
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
         holder.mTvKey.setText("");
         holder.mTvValue.setText("");
         synchronized (mDataset) {
             try {
-                String key = (String)(mDataset.keySet().toArray()[position]);
-                String value = (String) (mDataset.values().toArray())[position];
-
-                holder.mTvKey.setText(key);
-                holder.mTvValue.setText(value);
-            }catch (Exception e){
+                holder.mTvKey.setText(mDataset.keySet().toArray()[position].toString());
+                holder.mTvValue.setText(mDataset.values().toArray()[position].toString());
+            }catch (final Exception e){
                 e.printStackTrace();
             }
         }
-
     }
 
     public interface OnItemClickListener {
         void onItemClick(View view, int position, String id);
     }
 
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
+    public void setOnItemClickListener(final OnItemClickListener itemClickListener) {
         this.mItemClickListener = itemClickListener;
     }
 
