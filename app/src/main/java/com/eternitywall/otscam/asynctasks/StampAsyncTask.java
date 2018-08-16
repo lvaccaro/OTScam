@@ -54,7 +54,7 @@ public class StampAsyncTask extends AsyncTask<Void, Void, Boolean>{
         if (receipt.id == 0)
             receipt.id = receiptDBHelper.create(receipt);
         else
-            receipt.id = receiptDBHelper.update(receipt);
+            receiptDBHelper.update(receipt);
 
         // Stamp
         try {
