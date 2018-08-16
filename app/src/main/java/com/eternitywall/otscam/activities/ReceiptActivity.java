@@ -3,11 +3,13 @@ package com.eternitywall.otscam.activities;
 import android.content.ContentResolver;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog.Builder;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +24,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.eternitywall.otscam.GoogleUrlShortener;
+import com.eternitywall.otscam.MainApplication;
 import com.eternitywall.otscam.R;
 import com.eternitywall.otscam.adapters.ItemAdapter;
 import com.eternitywall.otscam.asynctasks.UpgradeAsyncTask;
@@ -39,6 +42,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
+
+import static com.eternitywall.otscam.MainApplication.PERMISSION_ALL;
+import static com.eternitywall.otscam.MainApplication.WRITE_PERMISSIONS;
+import static com.eternitywall.otscam.MainApplication.showExplanation;
 
 public class ReceiptActivity extends AppCompatActivity {
 
@@ -228,6 +235,14 @@ public class ReceiptActivity extends AppCompatActivity {
     }
 
     public void onSavingClick() {
+        if (!MainApplication.hasPermissions(this, WRITE_PERMISSIONS)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, WRITE_PERMISSIONS[0]))
+                showExplanation(this, getString(R.string.app_name), "Enable permissions to timestamp", WRITE_PERMISSIONS, PERMISSION_ALL);
+            else
+                ActivityCompat.requestPermissions(this, WRITE_PERMISSIONS, PERMISSION_ALL);
+            return;
+        }
+
         final String filename = Utils.bytesToHex(ots.fileDigest()) + ".ots";
         final File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         final String filepath = dir.getAbsolutePath() + "/" + filename;
@@ -250,5 +265,19 @@ public class ReceiptActivity extends AppCompatActivity {
         detached.serialize(ssc);
         fos.write(ssc.getOutput());
         fos.close();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(final int requestCode,
+                                           final String permissions[], final int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_ALL:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    onSavingClick();
+                    return;
+                }
+        }
+        Toast.makeText(this, "Permissions not enabled", Toast.LENGTH_LONG).show();
     }
 }
