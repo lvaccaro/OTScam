@@ -36,7 +36,7 @@ public class StampAllAsyncTask extends AsyncTask<Void, Void, Void>{
                     final FileInputStream fileInputStream = new FileInputStream(file);
                     receipt.hash = Hash.from(fileInputStream, new OpSHA256()._TAG()).getValue();
                     receiptDBHelper.update(receipt);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     e.printStackTrace();
                 }
             if(receipt.ots == null) {
@@ -45,7 +45,7 @@ public class StampAllAsyncTask extends AsyncTask<Void, Void, Void>{
                 // Stamp
                 try {
                     OpenTimestamps.stamp(detached);
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
                 // Update the receipt ots
