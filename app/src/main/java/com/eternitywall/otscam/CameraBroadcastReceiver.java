@@ -13,7 +13,6 @@ import com.eternitywall.otscam.models.Receipt;
 
 public class CameraBroadcastReceiver extends BroadcastReceiver {
 
-    private static ReceiptDBHelper receiptDBHelper;
     private static final String TAG = CameraBroadcastReceiver.class.toString();
 
     @Override
@@ -23,18 +22,17 @@ public class CameraBroadcastReceiver extends BroadcastReceiver {
         if (!isCamera(action))
             return;
         try{
-            receiptDBHelper = ReceiptDBHelper.createReceiptDBHelper(context);
+            final ReceiptDBHelper receiptDBHelper = ReceiptDBHelper.createReceiptDBHelper(context);
             final Receipt receipt = new Receipt();
             receipt.path = Receipt.resolveUri(context, intent.getData());
             receipt.id = receiptDBHelper.create(receipt);
-            doProcess(context, receipt);
+            doProcess(context, receiptDBHelper, receipt);
         }catch (final Exception e){
             Log.d(TAG, "Invalid url");
         }
     }
 
-
-    private static void doProcess(final Context context, final Receipt receipt) {
+    private static void doProcess(final Context context, final ReceiptDBHelper receiptDBHelper, final Receipt receipt) {
         new StampAsyncTask(receiptDBHelper, receipt){
             @Override
             protected void onPreExecute() {
