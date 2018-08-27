@@ -14,6 +14,8 @@ public class Receipt {
     public byte[] hash;
 
     public static byte[] hexToBytes(final String hex) {
+        if (hex == null)
+            return null;
         final String hex_ = hex.length() % 2 != 0 ? "0" + hex : hex;
         final byte[] buffer = new byte[hex_.length() / 2];
         for (int i = 0; i < buffer.length; i++) {
